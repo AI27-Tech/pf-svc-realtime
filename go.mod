@@ -21,6 +21,7 @@ go 1.27
 require (
 	github.com/AI27-Tech/pf-pkg-contracts/packages/api-client-go v0.1.0-tracer.9
 	github.com/AI27-Tech/pf-pkg-platform-go v0.1.5
+	github.com/google/uuid v1.6.0
 )
 
 require (
@@ -31,7 +32,6 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/oapi-codegen/runtime v1.7.0 // indirect
 	github.com/redis/go-redis/v9 v9.22.0 // indirect

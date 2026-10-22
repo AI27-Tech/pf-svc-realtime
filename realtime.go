@@ -12,10 +12,12 @@ package realtime
 import (
 	"net/http"
 
+	"github.com/AI27-Tech/pf-pkg-platform-go/auth"
 	"github.com/AI27-Tech/pf-pkg-platform-go/bus"
 	"github.com/AI27-Tech/pf-pkg-platform-go/redis"
 	"github.com/AI27-Tech/pf-pkg-platform-go/worker"
 
+	streamhttp "github.com/AI27-Tech/pf-svc-realtime/adapters/http/stream"
 	"github.com/AI27-Tech/pf-svc-realtime/internal/authz"
 	"github.com/AI27-Tech/pf-svc-realtime/internal/connection"
 )
@@ -79,18 +81,22 @@ func New(p Pools, d Deps) (*Module, error) {
 
 // Routes monta las rutas HTTP del módulo bajo /api/v1/... en el mux dado.
 //
-// Scaffolding: hoy NO monta ninguna ruta. tracer.9 publica la superficie SSE
-// mínima (GET /api/v1/stream y el 409 stream_resync_required, DEC-090), pero el
-// cliente generado no modela el stream como operación (SSE no es una op OpenAPI)
-// y el bucle de conexión todavía no entrega deltas reales. Cuando el handler de
-// stream esté listo se montará aquí, derivando el flujo autorizado del sujeto
-// (sin leer ?canales, ADR 28 §7). GET /api/v1/conexiones (diagnóstico) espera a
-// tener qué reportar.
+// Monta GET /api/v1/stream (superficie SSE congelada de tracer.9, ADR 28)
+// detrás de auth.Middleware: cada apertura revalida el token y rechaza la sesión
+// revocada contra la proyección local de tombstones (m.authz, que es
+// RevocationChecker). El handler deriva el flujo del sujeto autenticado; no lee
+// ?canales (ADR 28 §7). La entrega de deltas reales (intake) sigue sin cuerpo
+// fuera de tracer.9 (DEC-090): la línea abre, late y se mantiene viva.
+//
+// Sin Autenticador (esqueleto standalone) NO se monta: una ruta de stream sin
+// verificación de token sería exponer sin autorizar.
 func (m *Module) Routes(mux *http.ServeMux) {
-	// TODO(realtime): montar GET /api/v1/stream sobre internal/connection cuando
-	// el bucle entregue deltas; el handler revalida en cada apertura (authz) y
-	// nunca lee ?canales. GET /api/v1/conexiones cuando haya diagnóstico.
-	_ = mux
+	if m.deps.Autenticador == nil {
+		return
+	}
+	h := streamhttp.NewHandler(m.deps.Liveness, connection.Ejecutar)
+	protegido := auth.Middleware(m.deps.Autenticador, m.authz)(http.HandlerFunc(h.Abrir))
+	mux.Handle("GET /api/v1/stream", protegido)
 }
 
 // Workers devuelve los workers embebidos del módulo (ADR 29 §6). La raíz de
