@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2026-10-27 — Alinear arch-test del CI a v0.1.7
+
+**Para quién:** para el equipo. El CI de `realtime` quedó varias versiones atrás del tool de arquitectura (usaba `@v0.1.1`); el resto del backend ya corre `@v0.1.7`. Alinearlo evita que un cambio de regla se valide distinto aquí que en los demás repos.
+
+**Cambios:**
+- `.github/workflows/ci.yml`: sube el pin `arch-test@v0.1.1` → `@v0.1.7`.
+
+**Verificado:** `go run .../tools/arch-test@v0.1.7 .` → `arch-test: OK` contra `realtime` (la regla de un `pf-svc-*` normal no cambió entre v0.1.1 y v0.1.7; v0.1.7 solo tocó la regla de `core`).
+
 ## 2026-10-22 — Handler SSE GET /api/v1/stream (E0-T9, superficie congelada tracer.9)
 
 **Para quién:** para el cliente que abre la línea de entrega viva de `mensajeria`. El stream SSE ya se puede abrir y se mantiene vivo con latido, autorizado por token; antes `Routes()` no montaba ninguna ruta. Monta la superficie que ADR 28 tiene congelada; la entrega de deltas de dominio reales sigue fuera (intake sin cuerpo, DEC-090).
