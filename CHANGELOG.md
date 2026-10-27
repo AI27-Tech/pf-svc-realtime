@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2026-10-22 — Handler SSE GET /api/v1/stream (E0-T9, superficie congelada tracer.9)
+
+**Para quién:** para el cliente que abre la línea de entrega viva de `mensajeria`. El stream SSE ya se puede abrir y se mantiene vivo con latido, autorizado por token; antes `Routes()` no montaba ninguna ruta. Monta la superficie que ADR 28 tiene congelada; la entrega de deltas de dominio reales sigue fuera (intake sin cuerpo, DEC-090).
+
+**Cambios:**
+- `adapters/http/stream/stream.go` (nuevo): `Handler` para `GET /api/v1/stream`. Sin `Last-Event-ID` abre línea nueva (stream_id opaco, época 0), emite las cabeceras SSE del contrato (`text/event-stream`, `Cache-Control: no-cache`, `X-Accel-Buffering: no`) y corre el bucle de conexión. Con `Last-Event-ID` responde `409 stream_resync_required` idéntico para toda causa (en V1 no hay registro durable de líneas; ADR 28 §5, sin oráculo). No lee `?canales` (ADR 28 §7).
+- `adapters/http/stream/sumidero.go` (nuevo): `sumideroSSE` implementa `connection.Sumidero` sobre `http.ResponseWriter`+`Flusher`: escribe frames SSE (`id`/`data`), latido como comentario, y `stream.stale`. Avanza el seq de transporte por delta; no toca el payload de dominio (ADR 28 §8).
+- `realtime.go`: `Routes` monta el handler detrás de `auth.Middleware(Autenticador, authz.Proyeccion)`, que revalida el token y rechaza la sesión revocada en cada apertura. Sin `Autenticador` (standalone) no se monta: una ruta de stream sin verificación sería exponer sin autorizar.
+
+**Alcance / qué NO entra:** la entrega real de deltas (intake), la codificación canónica del id SSE (se usa el shortcut `streamID.epoch.seq` ya presente), los eventos de control de línea más allá del latido, `GET /api/v1/conexiones`, y la emergencia. Todo eso sigue sin congelar fuera de tracer.9.
+
+**Decisión reportada:** ADR 28 §7 dice que el servidor no acepta `?canales`, pero ninguna fuente define si debe **ignorarlo** o **rechazarlo**. El handler lo **ignora** (no lo lee), que respeta "no acepta" sin inventar una regla de error. Pendiente de confirmar con Producto/Arquitectura.
+
+**Verificado:** `go build`/`vet` verde, `gofmt` limpio, `arch-test` OK. Tests (`stream_test.go`): `Last-Event-ID` válido y malformado dan ambos 409 `stream_resync_required`; una línea nueva abre 200 con las tres cabeceras SSE.
+
 ## 2026:10:16 17:13
 
 **Resumen:** Scaffold inicial del microservicio `realtime` (E0-T9), el tercer deployable obligatorio de V1 (ADR 29). Superficie pública, puntos de cableado y `TODO`, sin lógica de entrega real. Fija el contrato en `v0.1.0-tracer.9` (superficie SSE mínima, DEC-090) y agrega el flujo de CI del backend.
