@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2026-10-28 — tracer.21: subir el pin de contrato
+
+**Resumen:** se sube el pin de `pf-pkg-contracts` de `v0.1.0-tracer.9` a `v0.1.0-tracer.21` (+12 olas, el salto más grande). `realtime` usa solo la superficie SSE mínima congelada en tracer.9 (`GET /api/v1/stream`, `409 stream_resync_required`, DEC-090), que no cambió; el salto es aditivo. Solo `go.mod`/`go.sum`.
+
+**Para quién:** alineación de versión de contrato con el resto del backend. No desbloquea el consumidor `intake` ni los frames de control, que siguen gated por DEC-090 (protocolo SSE sin congelar).
+
+**Cambios:**
+- `go.mod`/`go.sum`: `api-client-go` `v0.1.0-tracer.9` → `v0.1.0-tracer.21`.
+
+**Verificación:** `go build/vet ./...`, `go test ./...` (2 paquetes ok), `gofmt` limpio, `arch-test` (v0.1.7) PASS. Sin renombres de enum (§8), pese al salto de 12 olas.
+
 ## 2026-10-27 — Alinear arch-test del CI a v0.1.7
 
 **Para quién:** para el equipo. El CI de `realtime` quedó varias versiones atrás del tool de arquitectura (usaba `@v0.1.1`); el resto del backend ya corre `@v0.1.7`. Alinearlo evita que un cambio de regla se valide distinto aquí que en los demás repos.
