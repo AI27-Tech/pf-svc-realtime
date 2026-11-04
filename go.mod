@@ -20,7 +20,7 @@ go 1.27
 // mínima de realtime entró en contracts v0.1.0-tracer.9.
 require (
 	github.com/AI27-Tech/pf-pkg-contracts/packages/api-client-go v0.1.0-tracer.21
-	github.com/AI27-Tech/pf-pkg-platform-go v0.1.5
+	github.com/AI27-Tech/pf-pkg-platform-go v0.1.9
 	github.com/google/uuid v1.6.0
 )
 
