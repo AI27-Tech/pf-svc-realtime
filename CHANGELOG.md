@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2026-11-04 16:40 — platform-go v0.1.9: un token sin rol ni audiencia se rechaza
+
+**Para quién:** quien llama a `realtime` con un token. Un token verificado que no trae claim `audiencia` ni `rol` ahora recibe 401 `no_autorizado`; antes se tomaba como audiencia Interno, que no se acota por tenant (DEC-129). Los tokens con `audiencia` explícita, con `rol` `cliente` o con cualquiera de los roles internos se comportan igual que antes.
+
+**Cambios:**
+- `go.mod`/`go.sum`: `pf-pkg-platform-go` v0.1.5 → v0.1.9 (PR #41 de platform-go). Sin cambio de código.
+
+**Verificación:** `gofmt` limpio, `go vet ./...`, `go build ./...` (incluye `./cmd/...`), `go test ./...` sin BD (realtime no tiene pruebas de BD), `arch-test` (v0.1.7 del CI y v0.1.9) en verde. Ninguna prueba arma un token sin rol contra el `auth.Verifier` real (las que usan claims sin rol pasan por autenticadores falsos), así que no se tocó ningún fixture.
+
 ## 2026-10-28 — tracer.21: subir el pin de contrato
 
 **Resumen:** se sube el pin de `pf-pkg-contracts` de `v0.1.0-tracer.9` a `v0.1.0-tracer.21` (+12 olas, el salto más grande). `realtime` usa solo la superficie SSE mínima congelada en tracer.9 (`GET /api/v1/stream`, `409 stream_resync_required`, DEC-090), que no cambió; el salto es aditivo. Solo `go.mod`/`go.sum`.
